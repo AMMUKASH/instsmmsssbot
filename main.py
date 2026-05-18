@@ -1,5 +1,4 @@
 import asyncio
-from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -29,23 +28,8 @@ CHANNELS = [
 ]
 # --------------------------------------------
 
-# Pyrogram Bot Initialize (Bina loop ke taaki error na aaye)
+app = FastAPI()
 bot = Client("insta_mms_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
-
-# --- MODERN LIFESPAN MANAGER (Event Loop Fix) ---
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # FastAPI start hote hi pehle bot start hoga (Same event loop me)
-    print("🤖 Starting Telegram Bot...")
-    await bot.start()
-    print("🤖 @Insta_mmmmmsss_bot is now active!")
-    yield
-    # FastAPI stop hote hi bot stop ho jayega
-    print("🤖 Stopping Bot...")
-    await bot.stop()
-
-# FastAPI App with Lifespan
-app = FastAPI(lifespan=lifespan)
 
 @app.get("/")
 def hello_world():
@@ -116,5 +100,20 @@ async def check_again_callback(client, callback_query):
             caption="ʙꜱ ʏʀ ᴀʙ ᴋʏᴀ ᴊᴀᴀɴ ʟᴇɢᴀ💋"
         )
 
+# --- THE ABSOLUTE EVENT LOOP FIX ---
+async def main():
+    # Pehle bot ko manually start karenge explicit async context me
+    print("🤖 Starting Telegram Bot...")
+    await bot.start()
+    print("🤖 Bot started successfully.")
+    
+    # Ab uvicorn ko isi same running event loop ke andar start karenge
+    config = uvicorn.Config(app, host="0.0.0.0", port=8000, loop="asyncio")
+    server = uvicorn.Server(config)
+    
+    print("🚀 Starting FastAPI Server...")
+    await server.serve()
+
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000)
+    # Python 3.11+ aur Python 3.14 ke liye safest way to run async main
+    asyncio.run(main())
