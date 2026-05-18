@@ -1,17 +1,17 @@
 import asyncio
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.errors import UserNotParticipant
 import uvicorn
 
-# --- CONFIGURATION (YOUR DATA INTEGRATED) ---
+# --- CONFIGURATION ---
 API_ID = 38138069        
 API_HASH = "2ed313ebcc45cbcf65d1fc736ec71681"  
 BOT_TOKEN = "8469456367:AAHnPUxDa1246b3O4p0yHkM4CKkIfSsToW0" 
 START_IMG = "https://files.catbox.moe/ko5i86.jpg"
 
-# All your channels with stylish names and usernames extracted from links
 CHANNELS = [
     {"name": "ɪɴᴅɪᴀɴ ᴍᴍꜱ💋", "username": "About_Genious"},
     {"name": "ʀᴇᴀʟ ʜɪɴᴅɪ ᴍᴍꜱ💋", "username": "Tele_links_update"},
@@ -29,11 +29,23 @@ CHANNELS = [
 ]
 # --------------------------------------------
 
-# FastAPI App Initialize
-app = FastAPI()
-
-# Pyrogram Bot Initialize
+# Pyrogram Bot Initialize (Bina loop ke taaki error na aaye)
 bot = Client("insta_mms_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+
+# --- MODERN LIFESPAN MANAGER (Event Loop Fix) ---
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # FastAPI start hote hi pehle bot start hoga (Same event loop me)
+    print("🤖 Starting Telegram Bot...")
+    await bot.start()
+    print("🤖 @Insta_mmmmmsss_bot is now active!")
+    yield
+    # FastAPI stop hote hi bot stop ho jayega
+    print("🤖 Stopping Bot...")
+    await bot.stop()
+
+# FastAPI App with Lifespan
+app = FastAPI(lifespan=lifespan)
 
 @app.get("/")
 def hello_world():
@@ -48,7 +60,6 @@ async def check_user_joined(client, user_id):
         except UserNotParticipant:
             not_joined.append(channel)
         except Exception:
-            # Agar bot kisi channel me admin nahi hoga, toh check skip ho jayega
             continue
     return not_joined
 
@@ -59,7 +70,6 @@ async def start_command(client, message):
     
     if not_joined_channels:
         buttons = []
-        # Har 2 channels ko ek line (row) me dikhane ke liye logic
         row = []
         for channel in not_joined_channels:
             row.append(InlineKeyboardButton(text=channel['name'], url=f"https://t.me/{channel['username']}"))
@@ -69,7 +79,6 @@ async def start_command(client, message):
         if row:
             buttons.append(row)
             
-        # Try Again button sabse last me single line me
         buttons.append([InlineKeyboardButton(text="🔄 Checked / Try Again", callback_data="check_again")])
         
         await message.reply_photo(
@@ -84,7 +93,7 @@ async def start_command(client, message):
     else:
         await message.reply_photo(
             photo=START_IMG,
-            caption=f"✨ **Welcome back!**\n\nAapne saare channels join kar liye hain. Ab aap bot use kar sakte hain!"
+            caption="ʙꜱ ʏʀ ᴀʙ ᴋʏᴀ ᴊᴀᴀɴ ʟᴇɢᴀ💋"
         )
 
 @bot.on_callback_query(filters.regex("check_again"))
@@ -95,21 +104,17 @@ async def check_again_callback(client, callback_query):
     if not_joined_channels:
         await callback_query.answer(text="❌ Aapne abhi bhi saare channels join nahi kiye hain! Kripya sabhi ko join karein.", show_alert=True)
     else:
-        await callback_query.answer("✅ Thank you! Verification successful.", show_alert=False)
-        await callback_query.edit_message_caption(
-            caption="✨ **Aapka swagat hai!**\n\nVerification safal rha. Ab aap bot ke saare features use kar sakte hain!"
+        await callback_query.answer("✅ Verification successful!", show_alert=False)
+        try:
+            await callback_query.message.delete()
+        except Exception:
+            pass
+            
+        await client.send_photo(
+            chat_id=callback_query.message.chat.id,
+            photo=START_IMG,
+            caption="ʙꜱ ʏʀ ᴀʙ ᴋʏᴀ ᴊᴀᴀɴ ʟᴇɢᴀ💋"
         )
-
-# --- SERVER & BOT LIFECYCLE ---
-@app.on_event("startup")
-async def startup_event():
-    asyncio.create_task(bot.start())
-    print("🤖 @Insta_mmmmmsss_bot started in background...")
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    await bot.stop()
-    print("🤖 Bot stopped.")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000)
