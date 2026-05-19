@@ -1,98 +1,279 @@
 import asyncio
-from fastapi import FastAPI
+import re
 from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from pyrogram.errors import UserNotParticipant
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from config import Config
+import database as db
 
-# --- CONFIGURATION ---
-API_ID = 38138069        
-API_HASH = "2ed313ebcc45cbcf65d1fc736ec71681"  
-BOT_TOKEN = "8346782187:AAEjgCRs-wAE1fzV-zOqpjB_PaldyOCwDEc"
-START_IMG = "https://files.catbox.moe/ko5i86.jpg"
+# Web server Setup Render ki port binding ke liye (Uptime)
+from aiohttp import web
+async def handle(request):
+    return web.Response(text="Bot is Running and Alive 24/7!")
 
-CHANNELS = [
-    {"name": "ɪɴᴅɪᴀɴ ᴍᴍꜱ💋", "username": "About_Genious"},
-    {"name": "ʀᴇᴀʟ ʜɪɴᴅɪ ᴍᴍꜱ💋", "username": "Tele_links_update"},
-    {"name": "ꜰᴏʀᴄᴇ ꜰᴜᴄᴋ💋", "username": "Seling_Proff"},
-    {"name": "ᴍᴏᴍ & ꜱᴏɴ💋💋", "username": "Genu_Bot_Support"},
-    {"name": "ᴄʜɪʟᴅ ꜱᴇx💋💋", "username": "Friend_Forevr"},
-    {"name": "ꜱᴛᴇᴩ ᴍᴏᴍ ꜱᴏɴ💋💋", "username": "SticrAura"},
-    {"name": "ꜱᴄʜᴏᴏʟ ɪɴᴅɪᴀɴ ɢɪʀʟ💋💋", "username": "Villain_Loves"},
-    {"name": "ɪɴᴅɪᴀɴ ᴅᴇꜱɪ ᴀᴜɴᴛʏ💋💋", "username": "Sexi_Aura"},
-    {"name": "ʙʜᴀʙʜɪ ʟᴏᴠᴇ💋💋", "username": "Usertag_update"},
-    {"name": "ᴊᴀᴩᴀɴᴇᴇꜱ ɢɪʀʟ💋💋💋", "username": "MoviesHub_Verse"},
-    {"name": "ʀᴇᴀʟ ᴍᴍꜱ ᴠɪʀᴀʟ💋💋", "username": "K8vin_Hub"},
-    {"name": "ᴠɪʀᴀʟ ᴠɪᴅᴇᴏꜱ💋💋💋", "username": "Animyedit"},
-    {"name": "ꜱᴜɴɴʏ ʟᴇᴏɴᴇ💋💋", "username": "ll_CEO_OF_YOO_ll"}
-]
-# --------------------------------------------
+async def start_server():
+    app = web.Application()
+    app.router.add_get('/', handle)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', Config.PORT)
+    await site.start()
 
-app = FastAPI()
+bot = Client(
+    "GuardianProBot",
+    api_id=Config.API_ID,
+    api_hash=Config.API_HASH,
+    bot_token=Config.BOT_TOKEN
+)
 
-# Global Client setup bina immediate initialization ke
-bot = Client("insta_mms_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+# Helper functions
+def parse_buttons(text):
+    if not text: return None
+    try:
+        kb = []
+        for line in text.split("\n"):
+            if "|" in line:
+                n, u = line.split("|")
+                kb.append([InlineKeyboardButton(n.strip(), url=u.strip())])
+        return kb if kb else None
+    except: return None
 
-@app.get("/")
-def hello_world():
-    return {"status": "Bot is running 24/7", "url": "https://instsmmsssbot.onrender.com"}
+async def is_admin(chat, user_id):
+    if chat.type.value in ["private"]: return True
+    try:
+        m = await bot.get_chat_member(chat.id, user_id)
+        return m.status.value in ["administrator", "owner"]
+    except: return False
 
-async def check_user_joined(client, user_id):
-    not_joined = []
-    for channel in CHANNELS:
-        try:
-            await client.get_chat_member(channel["username"], user_id)
-        except UserNotParticipant:
-            not_joined.append(channel)
-        except Exception:
-            continue
-    return not_joined
+# --- HANDLERS ---
 
-@bot.on_message(filters.command("start") & filters.private)
-async def start_command(client, message):
-    user_id = message.from_user.id
-    not_joined_channels = await check_user_joined(client, user_id)
-    
-    if not_joined_channels:
-        buttons = []
-        row = []
-        for channel in not_joined_channels:
-            row.append(InlineKeyboardButton(text=channel['name'], url=f"https://t.me/{channel['username']}"))
-            if len(row) == 2:
-                buttons.append(row)
-                row = []
-        if row:
-            buttons.append(row)
-            
-        buttons.append([InlineKeyboardButton(text="🔄 Checked / Try Again", callback_data="check_again")])
-        
-        await message.reply_photo(
-            photo=START_IMG,
-            caption="👋 **Welcome!**\n\nBot ko use karne ke liye aapko hamare sabhi channels ko join karna padega.\n\nNeeche diye gaye sabhi buttons par click karke join karein 👇",
-            reply_markup=InlineKeyboardMarkup(buttons)
+@bot.on_message(filters.command("start"))
+async def start_cmd(client, message: Message):
+    text = (
+        "╭────── • 𝐆𝐔𝐀𝐑𝐃𝐈𝐀𝐍 𝐏𝐑𝐎 • ──────╮\n"
+        "│      ✨ **ADVANCED GROUP SECURITY** ✨      \n"
+        "├──────────────────────────────┤\n"
+        "│ 🛡️ **BIO LINK PROTECTION**\n"
+        "│  └ Warn + Auto Mute (30ᵐⁱⁿ)\n"
+        "│\n"
+        "│ 🔗 **ANTI LINK SYSTEM**\n"
+        "│  └ Instant Link Removal\n"
+        "│\n"
+        "│ 🚫 **ANTI ABUSE PROTECTION**\n"
+        "│  └ Smart Language Filter\n"
+        "│\n"
+        "│ 📥 **FORWARD CONTROL**\n"
+        "│  └ Auto Forward Delete\n"
+        "│\n"
+        "│ 📝 **EDIT SECURITY**\n"
+        "│  └ Edited Link Detection\n"
+        "│\n"
+        "│ 🗑️ **MEDIA CLEANUP**\n"
+        "│  └ Silent Auto Delete (50s)\n"
+        "├──────────────────────────────┤\n"
+        "│ ⚡ _Fast • Stable • Professional Grade_      \n"
+        "╰──────────────────────────────╯"
+    )
+    buttons = InlineKeyboardMarkup([
+        [InlineKeyboardButton("✨ Add Me To Your Group ✨", url=f"https://t.me/{Config.BOT_USERNAME}?startgroup=true")],
+        [
+            InlineKeyboardButton("📢 Channel", url=f"https://t.me/{Config.UPDATE_CH}"),
+            InlineKeyboardButton("🛠️ Help Menu", callback_data="help_menu")
+        ]
+    ])
+    if message.chat.type.value == "private":
+        await message.reply_photo(photo=Config.START_IMG, caption=text, reply_markup=buttons)
+    else:
+        await message.reply_text("Bot active hai! Mujhe PM (Private Message) me start karke Help Menu check karein.", reply_markup=buttons)
+
+@bot.on_callback_query(filters.regex("^help_menu$|^back_start$"))
+async def cb_handler(client, cb: CallbackQuery):
+    if cb.data == "help_menu":
+        help_text = (
+            "🛠️ **GUARDIAN PRO - HELP MENU & GUIDE**\n\n"
+            "👮 **Admin Commands:**\n"
+            "• `/ban` - User ko group se ban karein (Reply)\n"
+            "• `/unban` - User ko unban karein\n"
+            "• `/mute` - User ko mute karein\n"
+            "• `/unmute` - User ko unmute karein\n"
+            "• `/warn` - User ko warning dein (Max 3 pe kick)\n"
+            "• `/diswarn` - User ki warning kam karein\n"
+            "• `/approve` - User ko whitelist karein (Anti-link skip)\n"
+            "• `/disapprove` - Whitelist se hatayein\n\n"
+            "⚙️ **Welcome Customization:**\n"
+            "• `/welcomeset [text]` - Reply on a photo to set custom welcome\n"
+            "• `/welcomereset` - Welcome message band karein\n\n"
+            "🔍 **Filters System:**\n"
+            "• `/filter [keyword] [reply text]` - New trigger filter set karein\n"
+            "• `/stop [keyword]` - Triger filter delete karein\n"
+            "• `/stopallfilter` - Group ke saare filters clear karein"
         )
-    else:
-        await message.reply_photo(photo=START_IMG, caption="ʙꜱ ʏʀ ᴀʙ ᴋʏᴀ ᴊᴀᴀɴ ʟᴇɢᴀ💋")
+        await cb.message.edit_caption(caption=help_text, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="back_start")]]))
+    elif cb.data == "back_start":
+        # Start message text format restore karein
+        text = (
+            "╭────── • 𝐆𝐔𝐀𝐑𝐃𝐈𝐀𝐍 𝐏𝐑𝐎 • ──────╮\n"
+            "│      ✨ **ADVANCED GROUP SECURITY** ✨      \n"
+            "╰──────────────────────────────╯"
+        )
+        buttons = InlineKeyboardMarkup([
+            [InlineKeyboardButton("✨ Add Me To Your Group ✨", url=f"https://t.me/{Config.BOT_USERNAME}?startgroup=true")],
+            [InlineKeyboardButton("📢 Channel", url=f"https://t.me/{Config.UPDATE_CH}"), InlineKeyboardButton("🛠️ Help Menu", callback_data="help_menu")]
+        ])
+        await cb.message.edit_caption(caption=text, reply_markup=buttons)
 
-@bot.on_callback_query(filters.regex("check_again"))
-async def check_again_callback(client, callback_query):
-    user_id = callback_query.from_user.id
-    not_joined_channels = await check_user_joined(client, user_id)
+# --- WELCOME COMMANDS ---
+@bot.on_message(filters.command("welcomeset") & filters.group)
+async def set_welcome_msg(client, message: Message):
+    if not await is_admin(message.chat, message.from_user.id): return
+    if not message.reply_to_message or not message.reply_to_message.photo:
+        await message.reply_text("❌ Photo par reply karke `/welcomeset` command dein!")
+        return
+    fid = message.reply_to_message.photo.file_id
+    full_t = message.text or message.caption or ""
+    text_w = full_t.replace("/welcomeset", "").strip()
+    cap, btn = text_w, ""
+    if "[" in text_w and "]" in text_w:
+        parts = text_w.split("[")
+        cap = parts[0].strip()
+        btn = "\n".join([p.replace("]", "").strip() for p in parts[1:]])
+    await db.set_welcome(message.chat.id, fid, cap, btn)
+    await message.reply_text("✅ Custom Welcome image aur settings save ho chuki hain!")
+
+@bot.on_message(filters.command("welcomereset") & filters.group)
+async def reset_welcome_msg(client, message: Message):
+    if not await is_admin(message.chat, message.from_user.id): return
+    await db.reset_welcome(message.chat.id)
+    await message.reply_text("🗑️ Welcome message successfully reset aur disable kar diya gaya hai.")
+
+# --- ADMIN ACTIONS CONTROLS ---
+@bot.on_message(filters.command(["ban", "mute", "warn", "approve", "disapprove", "diswarn"]) & filters.group)
+async def admin_actions(client, message: Message):
+    if not await is_admin(message.chat, message.from_user.id): return
+    if not message.reply_to_message:
+        await message.reply_text("❌ Is command ko use karne ke liye target user ke message par reply karein.")
+        return
     
-    if not_joined_channels:
-        await callback_query.answer(text="❌ Aapne abhi bhi saare channels join nahi kiye hain! Kripya sabhi ko join karein.", show_alert=True)
-    else:
-        await callback_query.answer("✅ Verification successful!", show_alert=False)
-        try:
-            await callback_query.message.delete()
-        except Exception:
-            pass
-        await client.send_photo(chat_id=callback_query.message.chat.id, photo=START_IMG, caption="ʙꜱ ʏʀ ᴀʙ ᴋʏᴀ ᴊᴀᴀɴ ʟᴇɢᴀ💋")
+    target = message.reply_to_message.from_user
+    cmd = message.command[0]
 
-# Python 3.14 Loop compatibility fix using Uvicorn's native lifespan loop hook
-@app.on_event("startup")
-async def startup_event():
-    loop = asyncio.get_running_loop()
-    # Pyrogram ko force kar rahe hain isi current running loop ko consume karne ke liye
-    bot.loop = loop 
-    asyncio.create_task(bot.start())
-    print("🤖 Bot successfully synchronized with ASGI event loop!")
+    if cmd == "ban":
+        await client.ban_chat_member(message.chat.id, target.id)
+        await message.reply_text(f"🛑 {target.mention} ko group se block (Ban) kar diya gaya.")
+    elif cmd == "mute":
+        await client.restrict_chat_member(message.chat.id, target.id, permissions=chat_permissions(can_send_messages=False))
+        await message.reply_text(f"🔇 {target.mention} ko mute kar diya gaya hai.")
+    elif cmd == "warn":
+        count = await db.add_warn(message.chat.id, target.id)
+        if count >= 3:
+            await client.ban_chat_member(message.chat.id, target.id)
+            await message.reply_text(f"🔥 {target.mention} ke 3/3 warnings poore hone par Ban kar diya gaya.")
+        else:
+            await message.reply_text(f"⚠️ {target.mention} ko warning di gayi. (Total Warns: {count}/3)")
+    elif cmd == "diswarn":
+        count = await db.remove_warn(message.chat.id, target.id)
+        await message.reply_text(f"✅ {target.mention} ki ek warning kam kar di gayi hai. (Bachi warning: {count})")
+    elif cmd == "approve":
+        await db.approve_user(message.chat.id, target.id)
+        await message.reply_text(f"🟢 {target.mention} approve ho gaya hai. Ab ispar anti-link system work nahi karega.")
+    elif cmd == "disapprove":
+        await db.disapprove_user(message.chat.id, target.id)
+        await message.reply_text(f"🔴 {target.mention} whitelisted status se remove kar diya gaya.")
+
+@bot.on_message(filters.command(["unban", "unmute"]) & filters.group)
+async def admin_unactions(client, message: Message):
+    if not await is_admin(message.chat, message.from_user.id): return
+    cmd = message.command[0]
+    
+    if len(message.command) > 1:
+        target_id = message.command[1]
+    elif message.reply_to_message:
+        target_id = message.reply_to_message.from_user.id
+    else:
+        await message.reply_text("❌ ID dalein ya user ke message par reply karke command run karein.")
+        return
+
+    if cmd == "unban":
+        await client.unban_chat_member(message.chat.id, target_id)
+        await message.reply_text("✅ User group me wapas aa sakta hai (Unbanned).")
+    elif cmd == "unmute":
+        from pyrogram.types import ChatPermissions
+        await client.restrict_chat_member(message.chat.id, target_id, permissions=ChatPermissions(can_send_messages=True, can_send_media_messages=True, can_send_other_messages=True, can_add_web_page_previews=True))
+        await message.reply_text("🔊 User unmuted! Ab wo group me text bhej sakta hai.")
+
+# --- FILTER SYSTEM ---
+@bot.on_message(filters.command("filter") & filters.group)
+async def set_filter(client, message: Message):
+    if not await is_admin(message.chat, message.from_user.id): return
+    if len(message.command) < 3:
+        await message.reply_text("❌ Format galat hai. Use karein: `/filter [keyword] [reply text]`")
+        return
+    keyword = message.command[1].lower()
+    reply_text = message.text.split(None, 2)[2]
+    await db.add_filter(message.chat.id, keyword, reply_text)
+    await message.reply_text(f"📥 Filter save ho gaya hai trigger word: `{keyword}` ke liye.")
+
+@bot.on_message(filters.command("stop") & filters.group)
+async def stop_one_filter(client, message: Message):
+    if not await is_admin(message.chat, message.from_user.id): return
+    if len(message.command) < 2:
+        await message.reply_text("❌ Triger name dalein: `/stop [keyword]`")
+        return
+    kw = message.command[1].lower()
+    deleted = await db.stop_filter(message.chat.id, kw)
+    if deleted: await message.reply_text(f"🗑️ `{kw}` filter band kar diya gaya hai.")
+    else: await message.reply_text("❌ Aisa koi filter group me active nahi hai.")
+
+@bot.on_message(filters.command("stopallfilter") & filters.group)
+async def stop_all_f(client, message: Message):
+    if not await is_admin(message.chat, message.from_user.id): return
+    await db.stop_all_filters(message.chat.id)
+    await message.reply_text("💥 Is group ke saare custom filters delete kar diye gaye hain.")
+
+# --- NEW CHAT MEMBER JOIN ACTION ---
+@bot.on_message(filters.new_chat_members & filters.group)
+async def welcome_action(client, message: Message):
+    w_data = await db.get_welcome(message.chat.id)
+    if not w_data: return
+    cnt = await client.get_chat_members_count(message.chat.id)
+    for m in message.new_chat_members:
+        un = f"@{m.username}" if m.username else "No Username"
+        cap = w_data["caption"].replace("{mention}", m.mention).replace("{name}", m.first_name).replace("{id}", str(m.id)).replace("{username}", un).replace("{title}", message.chat.title).replace("{count}", str(cnt))
+        btns = parse_buttons(w_data.get("buttons"))
+        markup = InlineKeyboardMarkup(btns) if btns else None
+        try: await client.send_photo(chat_id=message.chat.id, photo=w_data["file_id"], caption=cap, reply_markup=markup)
+        except: pass
+
+# --- AUTO WATCHER (FILTERS, SECURITY & PROTECTION) ---
+@bot.on_message(filters.group & ~filters.service)
+async def watcher(client, message: Message):
+    if not message.from_user: return
+    if await db.is_approved(message.chat.id, message.from_user.id) or await is_admin(message.chat, message.from_user.id):
+        return
+
+    text_content = message.text or message.caption or ""
+    
+    # Custom Triggers Engine Check
+    all_filters = await db.get_filters(message.chat.id)
+    for f in all_filters:
+        if f["keyword"] in text_content.lower():
+            await message.reply_text(f["reply_text"])
+            return
+
+    # Basic URL/Link Security
+    if re.search(r"t\.me|http|www\.", text_content):
+        try: await message.delete(); return
+        except: pass
+
+    # Anti-Forward Control
+    if message.forward_date:
+        try: await message.delete(); return
+        except: pass
+
+async def main():
+    await start_server()
+    await bot.start()
+    print("Bot is successfully running online...")
+    await asyncio.Event().wait()
+
+if __name__ == "__main__":
+    asyncio.get_event_loop().run_until_complete(main())
