@@ -1,5 +1,10 @@
 import asyncio
 import re
+import nest_asyncio  # Latest Python Event Loop Crash Fix Ke Liye
+
+# Pyrogram Client init hone se pehle isko apply karna compulsory hai
+nest_asyncio.apply()
+
 from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, ChatPermissions
 from config import Config
@@ -286,6 +291,7 @@ async def main():
         await asyncio.sleep(3600)
 
 if __name__ == "__main__":
+    # Naye asyncio loop systems ko handle karne ke liye strict initialization
     try:
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
