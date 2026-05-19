@@ -9,6 +9,7 @@ from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, ChatPermissions
 from config import Config
 import database as db
+from aiohttp import web
 
 bot = Client(
     "GuardianProBot",
@@ -22,6 +23,7 @@ LOG_GROUP_ID = -1003947649552
 OWNER_USERNAME = "CoderNova"
 UPDATE_CHANNEL_LINK = "https://t.me/Gc_help_update"
 SUPPORT_GROUP_LINK = "https://t.me/Genu_Bot_Support"
+BOT_USERNAME = "Group_secu_bot"
 
 # Bad words list for Anti Abuse Filter
 BAD_WORDS = ["bhenchod", "madarchod", "gand", "chutiya", "luda", "lavda", "bsdk", "harami", "randi", "sala"]
@@ -33,8 +35,6 @@ NSFW_DRUG_KEYWORDS = [
 ]
 
 # --- WEB SERVER SETUP FOR RENDER PORT BINDING ---
-from aiohttp import web
-
 async def handle(request):
     return web.Response(text="Bot is Running and Alive 24/7!")
 
@@ -85,7 +85,7 @@ async def is_admin(chat, user_id):
 def get_action_buttons():
     return InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("✨ ᴀᴅᴅ ᴍᴇ ✨", url=f"https://t.me/{Config.BOT_USERNAME}?startgroup=true"),
+            InlineKeyboardButton("✨ ᴀᴅᴅ ᴍᴇ ✨", url=f"https://t.me/{BOT_USERNAME}?startgroup=true"),
             InlineKeyboardButton("📢 ᴜᴘᴅᴀᴛᴇ", url=UPDATE_CHANNEL_LINK)
         ]
     ])
@@ -100,7 +100,7 @@ START_TEXT = (
 )
 
 START_BUTTONS = InlineKeyboardMarkup([
-    [InlineKeyboardButton("✨ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ ✨", url=f"https://t.me/{Config.BOT_USERNAME}?startgroup=true")],
+    [InlineKeyboardButton("✨ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ ✨", url=f"https://t.me/{BOT_USERNAME}?startgroup=true")],
     [
         InlineKeyboardButton("📢 ᴜᴘᴅᴀᴛᴇs", url=UPDATE_CHANNEL_LINK),
         InlineKeyboardButton("👥 sᴜᴘᴘᴏʀᴛ", url=SUPPORT_GROUP_LINK)
@@ -160,7 +160,7 @@ async def handle_member_violation(client, message: Message, target_user, reason)
 
 # --- COMMAND HANDLERS ---
 
-@bot.on_message(filters.command("start"))
+@bot.on_message(filters.command(["start", f"start@{BOT_USERNAME}"]))
 async def start_cmd(client, message: Message):
     try:
         if message.chat.type.value == "private":
@@ -183,7 +183,7 @@ async def start_cmd(client, message: Message):
         except: pass
 
 
-@bot.on_message(filters.command("setting"))
+@bot.on_message(filters.command(["setting", f"setting@{BOT_USERNAME}"]))
 async def setting_cmd(client, message: Message):
     if message.chat.type.value != "private":
         if not await is_admin(message.chat, message.from_user.id):
@@ -286,8 +286,10 @@ async def cb_handler(client, cb: CallbackQuery):
         await cb.message.edit_caption(caption=guide, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ ʙᴀᴄᴋ", callback_data="back_modules")]]))
 
 
-# --- CORE ADMIN COMMANDS CODE ---
-@bot.on_message(filters.command(["ban", "unban", "mute", "unmute", "warn", "diswarn", "approve", "disapprove"]))
+# --- CORE ADMIN COMMANDS CODE (SUPPORTING EXTENDED FORMATS) ---
+@bot.on_message(filters.command(["ban", "unban", "mute", "unmute", "warn", "diswarn", "approve", "disapprove",
+                                 f"ban@{BOT_USERNAME}", f"unban@{BOT_USERNAME}", f"mute@{BOT_USERNAME}", f"unmute@{BOT_USERNAME}",
+                                 f"warn@{BOT_USERNAME}", f"diswarn@{BOT_USERNAME}", f"approve@{BOT_USERNAME}", f"disapprove@{BOT_USERNAME}"]))
 async def admin_commands_engine(client, message: Message):
     if message.chat.type.value == "private":
         await message.reply_text("❌ Yeh commands sirf Groups (Public/Private) mein kaam karte hain!")
@@ -297,7 +299,10 @@ async def admin_commands_engine(client, message: Message):
         await message.reply_text("❌ Aapke paas is command ko use karne ke liye Admin permissions nahi hain!")
         return
 
-    command = message.command[0].lower()
+    # Extract command cleanly even if username is attached
+    command_raw = message.command[0].lower()
+    command = command_raw.split("@")[0]
+    
     target_user = await extract_user(client, message)
 
     if not target_user:
@@ -342,7 +347,7 @@ async def admin_commands_engine(client, message: Message):
         await message.reply_text(f"⚠️ Action Fail ho gaya: {e}")
 
 # --- BROADCAST SYSTEM ---
-@bot.on_message(filters.command(["broadcast", "bc"]) & filters.private)
+@bot.on_message(filters.command(["broadcast", "bc", f"broadcast@{BOT_USERNAME}", f"bc@{BOT_USERNAME}"]) & filters.private)
 async def advanced_broadcast(client, message: Message):
     if message.from_user.username != OWNER_USERNAME and message.from_user.id != Config.OWNER_ID:
         return
@@ -472,7 +477,7 @@ async def edit_security_engine(client, message: Message):
             await handle_member_violation(client, message, message.from_user, "Edit Security (Tried to bypass anti-link via message Editing)")
 
 # --- WELCOME AND TRACKING COMMANDS ---
-@bot.on_message(filters.command("welcomeset") & filters.group)
+@bot.on_message(filters.command(["welcomeset", f"welcomeset@{BOT_USERNAME}"]) & filters.group)
 async def set_welcome_msg(client, message: Message):
     if not await is_admin(message.chat, message.from_user.id): return
     photo_msg = message if message.photo else (message.reply_to_message if message.reply_to_message and message.reply_to_message.photo else None)
@@ -515,9 +520,13 @@ async def main():
         print("✅ GUARDIAN PRO SECURITY ENGINE STARTED SUCCESSFULLY AND ALIVE!")
     except Exception as e:
         print(f"❌ BOT START CRASHED: {e}")
-    while True:
-        await asyncio.sleep(3600)
+    
+    # Render loop fix: secure wait without crashing
+    await asyncio.Event().wait()
 
 if __name__ == "__main__":
-    try: asyncio.run(main())
-    except (KeyboardInterrupt, SystemExit): print("Bot deployment stopped safely.")
+    try:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(main())
+    except (KeyboardInterrupt, SystemExit):
+        print("Bot deployment stopped safely.")
