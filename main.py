@@ -14,7 +14,6 @@ bot = Client(
 )
 
 # --- HARDCODED LINKS & CONFIG VARIATIONS ---
-LOG_GROUP_ID = -1003947649552
 OWNER_USERNAME = "CoderNova"
 UPDATE_CHANNEL_LINK = "https://t.me/Gc_help_update"
 SUPPORT_GROUP_LINK = "https://t.me/Genu_Bot_Support"
@@ -316,11 +315,23 @@ async def welcome_action(client, message: Message):
         try: await client.send_photo(chat_id=message.chat.id, photo=w_data["file_id"], caption=cap, reply_markup=markup)
         except: pass
 
-# --- NATIVE PYROGRAM STARTER WRAPPER ---
-if __name__ == "__main__":
-    # Web server background task loop scheduler setup
-    loop = asyncio.get_event_loop()
-    loop.create_task(start_server())
+# --- GLOBAL SINGLE LOOP EXECUTION ENGINE ---
+async def start_bot():
+    # 1. Pehle port framework register karo (Render demands)
+    await start_server()
     
-    print("🤖 INITIATING NATIVE PYROGRAM CLIENT ENGINE...")
-    bot.run()
+    # 2. Lazy loading ke through db connection initialize karo safe loop pe
+    db.init_db()
+    
+    # 3. Ab pure control ke sath Pyrogram start karo
+    print("🤖 STARTING BOT RUNTIME CLIENT ENGAGEMENT...")
+    await bot.start()
+    print("✅ GUARDIAN PRO SECURITY ENGINE IS LIVE!")
+    
+    # Keeping the main loop alive forever on Render
+    while True:
+        await asyncio.sleep(3600)
+
+if __name__ == "__main__":
+    # Natively master loop control to fix "no current event loop" crash
+    asyncio.run(start_bot())
