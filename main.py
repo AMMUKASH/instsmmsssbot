@@ -26,6 +26,12 @@ SUPPORT_GROUP_LINK = "https://t.me/Genu_Bot_Support"
 # Bad words list for Anti Abuse Filter
 BAD_WORDS = ["bhenchod", "madarchod", "gand", "chutiya", "luda", "lavda", "bsdk", "harami", "randi", "sala"]
 
+# NSFW aur Drugs detect karne ke liye strict blacklisted text/caption tags
+NSFW_DRUG_KEYWORDS = [
+    "nsfw", "18+", "porn", "xxx", "sex", "nude", "naked", "pussy", "dick",
+    "drugs", "weed", "ganja", "cocaine", "charas", "heroin", "mdma", "pills"
+]
+
 # --- WEB SERVER SETUP FOR RENDER PORT BINDING ---
 from aiohttp import web
 
@@ -80,9 +86,48 @@ def get_action_buttons():
     return InlineKeyboardMarkup([
         [
             InlineKeyboardButton("✨ ᴀᴅᴅ ᴍᴇ ✨", url=f"https://t.me/{Config.BOT_USERNAME}?startgroup=true"),
-            InlineKeyboardButton("📢 ᴜ_ᴅᴀᴛᴇ", url=UPDATE_CHANNEL_LINK)
+            InlineKeyboardButton("📢 ᴜᴘᴅᴀᴛᴇ", url=UPDATE_CHANNEL_LINK)
         ]
     ])
+
+# --- TEXT TEMPLATES FOR DYNAMIC SECTIONS (STYLISH FONTS) ---
+START_TEXT = (
+    "⚡ **ʜᴇʟʟᴏ {name}!**\n\n"
+    "🛡️ **ɪ ᴀᴍ ɢᴜᴀʀᴅɪᴀɴ ᴘʀᴏ**, ʏᴏᴜʀ ᴜbʟᴛɪᴍᴀᴛᴇ ɢʀᴏᴜᴘ sᴇᴄᴜʀɪᴛʏ ᴀɴᴅ ᴍᴏᴅᴇʀᴀᴛɪᴏɴ ᴀssɪsᴛᴀɴᴛ.\n\n"
+    "ɪ ᴄᴀɴ ᴘʀᴏᴛᴇᴄᴛ ʏᴏᴜʀ ᴄʜᴀᴛs ғʀᴏᴍ sᴘᴀᴍᴍᴇʀs, ɴsғᴡ ᴍᴇᴅɪᴀ, ᴀʙᴜsɪᴠᴇ ʟᴀɴɢᴜᴀɢᴇ, ᴀɴᴅ ᴜɴᴡᴀɴᴛᴇᴅ ʟɪɴᴋs ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ.\n\n"
+    "📌 **#ɴᴏᴛᴇ:** ᴀᴀᴘ ᴅɪʀᴇᴄᴛ `/setting` ᴄᴏᴍᴍᴀɴᴅ ᴜsᴇ ᴋᴀʀᴋᴇ ʙʜɪ sᴀᴀʀᴇ sᴇᴄᴜʀɪᴛʏ ғᴇᴀᴛᴜʀᴇs ᴀᴜr ᴜɴᴋɪ ɢᴜɪᴅᴇs ᴏᴘᴇɴ ᴋᴀʀ sᴀᴋᴛᴇ ʜᴀɪɴ.\n\n"
+    "👤 **ᴅᴇᴠᴇʟᴏᴘᴇʀ:** @{owner}"
+)
+
+START_BUTTONS = InlineKeyboardMarkup([
+    [InlineKeyboardButton("✨ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ ✨", url=f"https://t.me/{Config.BOT_USERNAME}?startgroup=true")],
+    [
+        InlineKeyboardButton("📢 ᴜᴘᴅᴀᴛᴇs", url=UPDATE_CHANNEL_LINK),
+        InlineKeyboardButton("👥 sᴜᴘᴘᴏʀᴛ", url=SUPPORT_GROUP_LINK)
+    ],
+    [InlineKeyboardButton("⚙️ sᴇᴛᴛɪɴɢ ᴍᴇɴᴜ", callback_data="modules_menu")]
+])
+
+SETTING_MENU_TEXT = (
+    "⚙️ **ɢᴜᴀʀᴅɪᴀɴ ᴘʀᴏ - sᴇᴄᴜʀɪᴛʏ ᴄᴏɴғɪɢᴜʀᴀᴛɪᴏɴs**\n\n"
+    "ɴɪᴄʜᴇ ᴅɪʏᴇ ɢᴀʏᴇ ʙᴜᴛᴛᴏɴs ᴘᴀʀ ᴄʟɪᴄᴋ ᴋᴀʀᴋᴇ ᴀᴀᴘ ʜᴀʀ ᴇᴋ sᴇᴄᴜʀɪᴛʏ ᴍᴏᴅᴜʟᴇ ᴋɪ **ᴡᴏʀᴋɪɴɢ, ɢᴜɪᴅᴇ, ᴀᴜʀ ᴀᴅᴍɪɴ ᴄᴏᴍᴍᴀɴᴅs** ᴄʜᴇᴄᴋ ᴋᴀʀ sᴀᴋᴛᴇ ʜᴀɪɴ:"
+)
+
+SETTING_BUTTONS = InlineKeyboardMarkup([
+    [
+        InlineKeyboardButton("🔗 ᴀɴᴛɪ-ʟɪɴᴋ", callback_data="guide_link"),
+        InlineKeyboardButton("🔞 ɴsғᴡ & ᴅʀᴜɢs", callback_data="guide_nsfw")
+    ],
+    [
+        InlineKeyboardButton("🚫 ᴀɴᴛɪ-ᴀʙᴜsᴇ", callback_data="guide_abuse"),
+        InlineKeyboardButton("📥 ғᴏʀᴡᴀʀᴅ ᴄᴛʀʟ", callback_data="guide_forward")
+    ],
+    [
+        InlineKeyboardButton("🛡️ ʙɪᴏ & ᴇᴅɪᴛ ɢᴜᴀʀᴅ", callback_data="guide_bio"),
+        InlineKeyboardButton("🛠️ ᴀᴅᴍɪɴ ᴄᴍᴅs", callback_data="guide_admin")
+    ],
+    [InlineKeyboardButton("⬅️ ʙᴀᴄᴋ ᴛᴏ ʜᴏᴍᴇ", callback_data="back_start")]
+])
 
 # --- DYNAMIC SECURITY WARN & MUTE HANDLER ---
 async def handle_member_violation(client, message: Message, target_user, reason):
@@ -112,6 +157,7 @@ async def handle_member_violation(client, message: Message, target_user, reason)
         if LOG_GROUP_ID:
             await client.send_message(LOG_GROUP_ID, f"⚠️ **#AUTO_WARN_REPORT**\n\n💬 **ɢʀᴏᴜᴘ:** {message.chat.title}\n👤 **ᴜsᴇʀ:** {target_user.mention}\n📊 **ᴡᴀʀɴs:** {count}/3\n🚫 **ʀᴇᴀsᴏɴ:** {reason}")
 
+
 # --- COMMAND HANDLERS ---
 
 @bot.on_message(filters.command("start"))
@@ -124,53 +170,176 @@ async def start_cmd(client, message: Message):
     except Exception as e:
         print(f"Database Tracking Error: {e}")
 
-    text = (
-        "╭────── • 𝐆𝐔𝐀𝐑𝐃𝐈𝐀𝐍 𝐏𝐑𝐎 • ──────╮\n"
-        "│      ✨ **ADVANCED GROUP SECURITY** ✨      \n"
-        "├──────────────────────────────┤\n"
-        "│ 🛡️ **BIO LINK PROTECTION** (Mute/Warn)\n"
-        "│ 🔗 **ANTI LINK SYSTEM** (Auto Delete)\n"
-        "│ 🚫 **ANTI ABUSE FILTER** (A to Z Words)\n"
-        "│ 📥 **FORWARD CONTROL** (Anti Forward)\n"
-        "│ 📝 **EDIT SECURITY** (Edited Link Ban)\n"
-        "│ 🗑️ **MEDIA CLEANUP** (Media Strict Control)\n"
-        "├──────────────────────────────┤\n"
-        f"│ 👤 **ᴅᴇᴠᴇʟᴏ_ᴇʀ:** @{OWNER_USERNAME}\n"
-        "╰──────────────────────────────╯"
-    )
-    buttons = InlineKeyboardMarkup([
-        [InlineKeyboardButton("✨ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜ_ organiser ✨", url=f"https://t.me/{Config.BOT_USERNAME}?startgroup=true")],
-        [
-            InlineKeyboardButton("📢 120+ ᴜ_ᴅᴀᴛᴇs", url=UPDATE_CHANNEL_LINK),
-            InlineKeyboardButton("👥 sᴜ__ᴏʀᴛ ɢʀᴏᴜ_ ", url=SUPPORT_GROUP_LINK)
-        ],
-        [InlineKeyboardButton("🛠️ ʜᴇʟ_ ᴍᴇɴᴜ", callback_data="help_menu")]
-    ])
+    text = START_TEXT.format(name=message.from_user.first_name, owner=OWNER_USERNAME)
     try:
-        await message.reply_photo(photo=Config.START_IMG, caption=text, reply_markup=buttons)
+        await message.reply_photo(photo=Config.START_IMG, caption=text, reply_markup=START_BUTTONS)
     except Exception:
-        await message.reply_text(text, reply_markup=buttons)
+        await message.reply_text(text, reply_markup=START_BUTTONS)
 
-    # Log group alert
     if LOG_GROUP_ID:
         try:
             log_text = f"🔔 **#START_TRIGGERED**\n\n👤 **ᴜsᴇʀ:** {message.from_user.mention}\n💬 **ᴄʜᴀᴛ:** {message.chat.title or 'Private'}"
             await client.send_message(LOG_GROUP_ID, log_text)
         except: pass
 
-@bot.on_callback_query(filters.regex("^help_menu$|^back_start$"))
+
+@bot.on_message(filters.command("setting"))
+async def setting_cmd(client, message: Message):
+    if message.chat.type.value != "private":
+        if not await is_admin(message.chat, message.from_user.id):
+            await message.reply_text("❌ Is command ko use karne ke liye aapka Group Admin hona zaroori hai!")
+            return
+            
+    try:
+        await message.reply_photo(
+            photo=Config.START_IMG, 
+            caption=SETTING_MENU_TEXT, 
+            reply_markup=SETTING_BUTTONS
+        )
+    except Exception:
+        await message.reply_text(SETTING_MENU_TEXT, reply_markup=SETTING_BUTTONS)
+
+
+# --- 🎮 INTERACTIVE CALLBACK MENU SYSTEM (STYLISH GUIDES) 🎮 ---
+
+@bot.on_callback_query()
 async def cb_handler(client, cb: CallbackQuery):
-    if cb.data == "help_menu":
-        help_text = "🛠️ **GUARDIAN PRO - ADMIN CONTROL PANEL**\n\n• `/ban` | `/unban` - Ban Management\n• `/mute` | `/unmute` - Mute Control\n• `/warn` | `/diswarn` - Warning System\n• `/approve` | `/disapprove` - Whitelist Users"
-        await cb.message.edit_caption(caption=help_text, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ ʙᴀᴄᴋ", callback_data="back_start")]]))
-    elif cb.data == "back_start":
-        text = "╭────── • 𝐆𝐔𝐀𝐑𝐃𝐈𝐀𝐍 𝐏𝐑𝐎 • ──────╮\n│      ✨ **ADVANCED GROUP SECURITY** ✨      \n╰──────────────────────────────╯"
-        buttons = InlineKeyboardMarkup([
-            [InlineKeyboardButton("✨ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜ_ organiser ✨", url=f"https://t.me/{Config.BOT_USERNAME}?startgroup=true")],
-            [InlineKeyboardButton("📢 120+ ᴜ_ᴅᴀᴛᴇs", url=UPDATE_CHANNEL_LINK), InlineKeyboardButton("👥 sᴜ__ᴏʀᴛ ɢʀᴏᴜ_ ", url=SUPPORT_GROUP_LINK)],
-            [InlineKeyboardButton("🛠️ ʜᴇʟ_ ᴍᴇɴᴜ", callback_data="help_menu")]
-        ])
-        await cb.message.edit_caption(caption=text, reply_markup=buttons)
+    data = cb.data
+    
+    if data == "modules_menu" or data == "back_modules":
+        await cb.message.edit_caption(caption=SETTING_MENU_TEXT, reply_markup=SETTING_BUTTONS)
+
+    elif data == "back_start":
+        text = START_TEXT.format(name=cb.from_user.first_name, owner=OWNER_USERNAME)
+        await cb.message.edit_caption(caption=text, reply_markup=START_BUTTONS)
+
+    # 1. Anti-Link Guide
+    elif data == "guide_link":
+        guide = (
+            "🔗 ╔════════════════════╗\n"
+            "      **ᴀɴᴛɪ-ʟɪɴᴋ ᴘʀᴏᴛᴇᴄᴛɪᴏɴ**\n"
+            "╚════════════════════╝\n\n"
+            "● **ᴡᴏʀᴋɪɴɢ:** ᴊᴀʙ ʙʜɪ ᴋᴏɪ ɴᴏɴ-ᴀᴅᴍɪɴ ᴍᴇᴍʙᴇʀ ɢʀᴏᴜᴘ ᴍᴇɪɴ ᴋɪsɪ ᴡᴇʙsɪᴛᴇ, ᴄʜᴀɴɴᴇʟ, ʏᴀ ᴛᴇʟᴇɢʀᴀᴍ ɪɴᴠɪᴛᴇ ʟɪɴᴋ (`t.me`, `http`) ʙʜᴇᴊᴇɢᴀ, ʙᴏᴛ ᴜsᴇ ɪɴsᴛᴀɴᴛʟʏ ᴅᴇʟᴇᴛᴇ ᴋᴀʀ ᴅᴇɢᴀ.\n\n"
+            "● **ᴘᴇɴᴀʟᴛʏ:** ᴍᴇᴍʙᴇʀ ᴋᴏ **1 ᴡᴀʀɴɪɴɢ** ᴅɪ ᴊᴀʏᴇɢɪ. 3/3 ᴡᴀʀɴɪɴɢs ʜᴏɴᴇ ᴘᴀʀ ᴜsᴇʀ **30 ᴍɪɴs** ᴋᴇ ʟɪʏᴇ ᴀᴜᴛᴏ-ᴍᴜᴛᴇ ʜᴏ ᴊᴀʏᴇɢᴀ."
+        )
+        await cb.message.edit_caption(caption=guide, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ ʙᴀᴄᴋ", callback_data="back_modules")]]))
+
+    # 2. NSFW Guide
+    elif data == "guide_nsfw":
+        guide = (
+            "🔞 ╔════════════════════╗\n"
+            "      **ɴsғᴡ & ᴅʀᴜɢs sᴇᴄᴜʀɪᴛʏ**\n"
+            "╚════════════════════╝\n\n"
+            "● **ᴡᴏʀᴋɪɴɢ:** ʏᴇʜ ᴍᴏᴅᴜʟᴇ ɢʀᴏᴜᴘ ᴋᴇ ᴍᴀʜᴏʟ ᴋᴏ ᴘʀᴇᴍɪᴜᴍ ʀᴀᴋʜɴᴇ ᴋᴇ ʟɪʏᴇ ʜᴀɪ. ᴀɢᴀʀ ᴋᴏɪ ᴛᴇxᴛ, ᴄᴀᴘᴛɪᴏɴ, ʏᴀ ɪᴍᴀɢᴇ sᴘᴏɪʟᴇʀ ғɪʟᴛᴇʀ ʙʟᴀᴄᴋlistᴇᴅ sᴇɴsɪᴛɪᴠᴇ ᴡᴏʀᴅs (`nsfw`, `xxx`, `drugs`, `weed`) ᴍᴀᴛᴄʜ ᴋᴀʀᴇɢᴀ, ᴛᴏʜ ᴄᴏɴᴛᴇɴᴛ ᴀᴜᴛᴏ-ᴅᴇʟᴇᴛᴇ ʜᴏ ᴊᴀʏᴇɢᴀ.\n\n"
+            "● **ɴᴏᴛᴇ:** ɴᴏʀᴍᴀʟ ᴍᴇᴅɪᴀ ғɪʟᴇs (ᴘɪᴄs/ᴠɪᴅᴇᴏs) ʙɪʟᴋᴜʟ sᴀғᴇ ʀᴀʜᴇɴɢɪ."
+        )
+        await cb.message.edit_caption(caption=guide, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ ʙᴀᴄᴋ", callback_data="back_modules")]]))
+
+    # 3. Anti-Abuse Guide
+    elif data == "guide_abuse":
+        guide = (
+            "🚫 ╔════════════════════╗\n"
+            "      **ᴀɴᴛɪ-ᴀʙᴜsᴇ ᴍᴏɴɪᴛᴏʀ**\n"
+            "╚════════════════════╝\n\n"
+            "● **ᴡᴏʀᴋɪɴɢ:** ɢʀᴏᴜᴘ ᴍᴇɪɴ ɢᴀᴀʟɪ-ɢᴀʟᴏᴄʜ ᴀᴜʀ ᴀʙᴜsɪᴠᴇ ʟᴀɴɢᴜᴀɢᴇ ᴋᴏ ʀᴏᴋɴᴇ ᴋᴇ ʟɪʏᴇ ʏᴇʜ ғɪʟᴛᴇʀ 𝟸𝟺/𝟽 ᴀᴄᴛɪᴠᴇ ʀᴀʜᴛᴀ ʜᴀɪ.\n\n"
+            "● **ᴀᴄᴛɪᴏɴ:** ʙʟᴀᴄᴋʟɪsᴛᴇᴅ ᴡᴏʀᴅs ʙʜᴇᴊᴛᴇ ʜɪ ᴍᴇssᴀɢᴇ ᴅᴇʟᴇᴛᴇ ʜᴏɢᴀ ᴀᴜʀ sᴇɴᴅᴇʀ ᴋᴏ ᴡᴀʀɴɪɴɢ sʏsᴛᴇᴍ ʜɪᴛ ᴋᴀʀᴇɢᴀ."
+        )
+        await cb.message.edit_caption(caption=guide, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ ʙᴀᴄᴋ", callback_data="back_modules")]]))
+
+    # 4. Forward Ctrl Guide
+    elif data == "guide_forward":
+        guide = (
+            "📥 ╔════════════════════╗\n"
+            "      **ғᴏʀᴡᴀʀᴅ ᴄᴏɴᴛʀᴏʟ sʏsᴛᴇᴍ**\n"
+            "╚════════════════════╝\n\n"
+            "● **ᴡᴏʀᴋɪɴɢ:** ᴅᴜsʀᴇ ᴄʜᴀɴɴᴇʟs ʏᴀ ᴘʀᴏᴍᴏᴛɪᴏɴᴀʟ ɢʀᴏᴜᴘs sᴇ ᴄᴏɴᴛᴇɴᴛ ᴅɪʀᴇᴄᴛ ғᴏʀᴡᴀʀᴅ ᴋᴀʀɴᴀ ɢʀᴏᴜᴘ ᴍᴇɪɴ sᴛʀɪᴄᴛʟʏ ʙᴀɴ ʜᴀɪ.\n\n"
+            "● **ᴀᴄᴛɪᴏɴ:** ɴᴏɴ-ᴀᴅᴍɪɴ ᴍᴇmʙᴇʀs ᴋᴀ ʜᴀʀ ᴇᴋ ғᴏʀᴡᴀʀᴅᴇᴅ ᴍᴇssᴀɢᴇ ʙᴏᴛ ɪɴsᴛᴀɴᴛʟʏ ᴅᴇʟᴇᴛᴇ ᴋᴀʀ ᴅᴇᴛᴀ ʜᴀɪ."
+        )
+        await cb.message.edit_caption(caption=guide, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ ʙᴀᴄᴋ", callback_data="back_modules")]]))
+
+    # 5. Bio & Edit Guard Guide
+    elif data == "guide_bio":
+        guide = (
+            "🛡️ ╔════════════════════╗\n"
+            "      **ʙɪᴏ & ᴇᴅɪᴛ sᴇᴄᴜʀɪᴛʏ**\n"
+            "╚════════════════════╝\n\n"
+            "● **ʙɪᴏ ɢᴜᴀʀᴅ:** ᴀɢᴀʀ ᴋɪsɪ ᴜsᴇʀ ᴋᴇ ᴛᴇʟᴇɢʀᴀᴍ ɢʟᴏʙᴀʟ ʙɪᴏ ᴍᴇɪɴ sᴘᴀᴍ/ᴡᴇʙsɪᴛᴇ ʟɪɴᴋ ʜᴀɪ ᴀᴜʀ ᴡᴏ ɢʀᴏᴜᴘ ᴍᴇɪɴ ᴄʜᴀᴛ ᴋᴀʀᴇɢᴀ, ᴛᴏʜ sᴇᴄᴜʀɪᴛʏ ᴀʟᴇʀᴛ ᴛʀɪɢɢᴇʀ ʜᴏ ᴊᴀʏᴇɢᴀ.\n\n"
+            "● **ᴇᴅɪᴛ ɢᴜᴀʀᴅ:** ᴀɢᴀʀ ᴋᴏɪ ᴍᴇʙᴇʀ ᴘᴇʜʟᴇ ɴᴏʀᴍᴀʟ ᴍᴇssᴀɢᴇ ʙʜᴇᴊ ᴋᴀʀ ʙᴀᴀᴅ ᴍᴇɪɴ ᴜsᴇ ᴇᴅɪᴛ ᴋᴀʀᴋᴇ ʟɪɴᴋ ᴅᴀᴀʟᴛᴀ ʜᴀɪ, ᴛᴏʜ ʙᴏᴛ ᴜsᴇ ʙʜɪ ᴅᴇʟᴇᴛᴇ ᴋᴀʀ ᴅᴇɢᴀ!"
+        )
+        await cb.message.edit_caption(caption=guide, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ ʙᴀᴄᴋ", callback_data="back_modules")]]))
+
+    # 6. Admin Cmds Guide
+    elif data == "guide_admin":
+        guide = (
+            "🛠️ ╔════════════════════╗\n"
+            "      **ᴀᴅᴍɪɴ ᴄᴏᴍᴍᴀɴᴅs ᴘᴀɴᴇʟ**\n"
+            "╚════════════════════╝\n\n"
+            "ɢʀᴏᴜᴘ ᴀᴅᴍɪɴs ɴɪᴄʜᴇ ᴅɪʏᴇ ɢᴀʏᴇ ᴘᴏᴡᴇʀғᴜʟ ᴄᴏᴍᴍᴀɴᴅs ᴜsᴇ ᴋᴀʀ sᴀᴋᴛᴇ ʜᴀɪɴ:\n\n"
+            "• `/ban` ➔ ᴍᴇᴍʙᴇʀ ᴋᴏ ᴘᴇʀᴍᴀɴᴇɴᴛʟʏ ʙʟᴏᴄᴋ ᴋᴀʀᴇɪɴ\n"
+            "• `/unban` ➔ ᴍᴇᴍʙᴇʀ ᴋᴀ ʙᴀɴ ʀᴇᴍᴏᴠᴇ ᴋᴀʀᴇɪɴ\n"
+            "• `/mute` ➔ ᴜsᴇʀ ᴋᴀ ᴄʜᴀᴛ ᴀᴄᴄᴇss ʙᴀɴᴅ ᴋᴀʀᴇɪɴ\n"
+            "• `/unmute` ➔ ᴄʜᴀᴛ ᴀᴄᴄᴇss ᴡᴀᴘᴀs ᴋʜᴏʟᴇɪɴ\n"
+            "• `/warn` ➔ ᴜsᴇʀ ᴋᴏ ᴍᴀɴᴜᴀʟ ᴡᴀʀɴɪɴɢ ᴅᴇɪɴ\n"
+            "• `/diswarn` ➔ sᴀᴀʀᴇ ᴡᴀʀɴɪɴɢs ᴄʟᴇᴀɴ ᴋᴀʀᴇɪɴ\n"
+            "• `/approve` ➔ ᴜsᴇʀ ᴋᴏ ᴡʜɪᴛᴇʟɪsᴛ ᴋᴀʀᴇɪɴ (ɴᴏ ғɪʟᴛᴇʀs)"
+        )
+        await cb.message.edit_caption(caption=guide, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ ʙᴀᴄᴋ", callback_data="back_modules")]]))
+
+
+# --- CORE ADMIN COMMANDS CODE ---
+@bot.on_message(filters.command(["ban", "unban", "mute", "unmute", "warn", "diswarn", "approve", "disapprove"]))
+async def admin_commands_engine(client, message: Message):
+    if message.chat.type.value == "private":
+        await message.reply_text("❌ Yeh commands sirf Groups (Public/Private) mein kaam karte hain!")
+        return
+
+    if not await is_admin(message.chat, message.from_user.id):
+        await message.reply_text("❌ Aapke paas is command ko use karne ke liye Admin permissions nahi hain!")
+        return
+
+    command = message.command[0].lower()
+    target_user = await extract_user(client, message)
+
+    if not target_user:
+        await message.reply_text(f"❌ Kripya kisi user ko reply karein ya unka username/ID dalein.\nExample: `/{command} @username`")
+        return
+
+    if await is_admin(message.chat, target_user.id) and command not in ["approve", "disapprove"]:
+        await message.reply_text("❌ Main kisi dusre Admin par action nahi le sakta!")
+        return
+
+    try:
+        if command == "ban":
+            await message.chat.ban_member(target_user.id)
+            await message.reply_text(f"🚨 {target_user.mention} ko group se **Ban** kar diya gaya.")
+        elif command == "unban":
+            await message.chat.unban_member(target_user.id)
+            await message.reply_text(f"✅ {target_user.mention} ko **Unban** kar diya gaya.")
+        elif command == "mute":
+            await message.chat.restrict_member(target_user.id, ChatPermissions(can_send_messages=False))
+            await message.reply_text(f"🤐 {target_user.mention} ko **Mute** kar diya gaya.")
+        elif command == "unmute":
+            await message.chat.restrict_member(
+                target_user.id, 
+                ChatPermissions(
+                    can_send_messages=True, can_send_media_messages=True,
+                    can_send_other_messages=True, can_add_web_page_previews=True
+                )
+            )
+            await message.reply_text(f"🔊 {target_user.mention} ko **Unmute** kar diya gaya.")
+        elif command == "warn":
+            await handle_member_violation(client, message, target_user, f"Manually Warned by Admin (@{message.from_user.username or message.from_user.id})")
+        elif command == "diswarn":
+            await db.reset_warns(message.chat.id, target_user.id)
+            await message.reply_text(f"🔄 {target_user.mention} ki saari warnings reset/remove kar di gayi hain.")
+        elif command == "approve":
+            await db.approve_user(message.chat.id, target_user.id)
+            await message.reply_text(f"🟢 {target_user.mention} ko whitelist kar diya gaya hai.")
+        elif command == "disapprove":
+            await db.disapprove_user(message.chat.id, target_user.id)
+            await message.reply_text(f"🔴 {target_user.mention} ko whitelist se hata diya gaya hai.")
+    except Exception as e:
+        await message.reply_text(f"⚠️ Action Fail ho gaya: {e}")
 
 # --- BROADCAST SYSTEM ---
 @bot.on_message(filters.command(["broadcast", "bc"]) & filters.private)
@@ -237,19 +406,23 @@ async def security_watcher(client, message: Message):
 
     # 1. ANTI LINK SYSTEM
     if has_link:
-        try: await message.delete()
-        except: pass
         if not (is_user_admin or is_user_approved):
+            try: await message.delete()
+            except: pass
             await handle_member_violation(client, message, message.from_user, "Anti Link Violation (Sent Forbidden Link)")
-        return
+            return
 
-    # 2. MEDIA CLEANUP
-    if message.photo or message.video or message.document or message.audio or message.voice or message.sticker:
-        try: await message.delete()
-        except: pass
+    # 2. NSFW & DRUG CONTENT FILTER 
+    is_nsfw_or_drug = any(word in text_content.lower() for word in NSFW_DRUG_KEYWORDS)
+    if message.has_media_spoiler:
+        is_nsfw_or_drug = True
+
+    if is_nsfw_or_drug:
         if not (is_user_admin or is_user_approved):
-            await handle_member_violation(client, message, message.from_user, "Media Cleanup Violation (Sent Restricted Media)")
-        return
+            try: await message.delete()
+            except: pass
+            await handle_member_violation(client, message, message.from_user, "NSFW / Illegal Drug Content Violation")
+            return
 
     # --- BELOW RESTRICTIONS ONLY FOR NON-ADMIN MEMBERS ---
     if is_user_admin or is_user_approved:
